@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer met Hints</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            text-align: center;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+        }
+        #hint, #codeInput, #nextButton {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="missionTitle">ESCAPE Barry & Aranka</h1>
+    <button id="startButton" onclick="startTimer()">Start Timer</button>
+
+    <div id="hint"></div>
+
+    <div id="codeInput">
+        <h2>Voer de cijfercode in:</h2>
+        <input type="text" id="code" placeholder="Typ je cijfercode...">
+        <button onclick="checkCode()">Verzend Code</button>
+    </div>
+
+    <button id="nextButton" onclick="goToNextPhase()" style="display: none;">Volgende Fase</button>
+
+    <script>
+        let hintIndex = 0;
+        let currentMission = 0;
+        let currentPhase = 0;
+        const missions = [
+            {
+                title: "Mission 0: Training Mission",
+                phases: [
+                    {
+                        hints: [
+                            "Hint 1: Onze experts ter plaatse suggereren dat dit lijkt te gaan over het Morse-alfabet. Er zou een vertaaltafel in het geprinte document moeten zijn!",
+                            "Hint 2: Vertaal de Morse-tekens met behulp van de Morse-tafel. Volgens onze experts lijkt het eerste teken een 'T' te zijn!",
+                            "Hint 3: Elke rij lijkt een gespeld nummer te vertalen. De eerste rij spelt 'TWO'.",
+                            "Hint 4: Werk je door de Morse-code, schrijf de vertaling erboven. De tweede rij spelt blijkbaar 'ONE'.",
+                            "Hint 5: Er zijn niet te veel nummers die beginnen met een 'F', een 'N', en een 'Z' - misschien kun je hier zelfs wat hoeken snijden?",
+                            "Hint 6: De derde rij spelt 'FOUR'.",
+                            "Hint 7: Rij vier spelt 'NINE'.",
+                            "Hint 8: Je zou nu vijf nummers moeten hebben gedecodeerd: '21490'. Voer het hier in op de telefoon en druk op OK."
+                        ],
+                        code: "21490",
+                        nextPage: "training_fase2.html"
+                    },
+                    {
+                        hints: [
+                            "Hint 1: Onze experts op de crime scene geloven dat deze code op de een of andere manier is opgeslagen in deze puzzel. Knip de stukjes uit en begin ze in elkaar te zetten!",
+                            "Hint 2: Onze experts geven aan dat het misschien nuttig is om te beginnen met de dikke, zwarte rand.",
+                            "Hint 3: De eerste rij van de puzzel lijkt 'CODE:' te spellen, wat onze eerdere hypothese bevestigt. We werken aan de tweede rij!",
+                            "Hint 4: We hebben nu informatie over de code zelf. Het nummer linksonder lijkt een '1' te zijn.",
+                            "Hint 5: Het lijkt erop dat het enige nummer dat naast de '1' linksonder past de '2' is.",
+                            "Hint 6: Nog een '1' lijkt de '2' te volgen.",
+                            "Hint 7: Het vierde cijfer is een '4'.",
+                            "Hint 8: Het laatste cijfer is een '8'. Dat betekent dat de code voor deze fase '12148' is. Voer het hier in op je telefoon en maak je klaar voor de volgende fase!"
+                        ],
+                        code: "12148",
+                        nextPage: "training_fase3.html"
+                    },
+                    {
+                        hints: [
+                            "Hint 1: Onze experts waren onzeker of dit een raadsel is, maar '21610' lijkt niet de oplossing te zijn!",
+                            "Hint 2: We merkten op dat er kleine stippen en streepjes boven en onder de '21610' staan.",
+                            "Hint 3: De stippen en streepjes lijken Morse-codes te zijn! We werken aan de vertaling.",
+                            "Hint 4: De bovenste Morse-code vertaalt naar 'DOWN'.",
+                            "Hint 5: De onderste Morse-code vertaalt naar 'UPSIDE'. Wat zou dit kunnen betekenen?",
+                            "Hint 6: We merkten op dat de posities van 'UPSIDE' en 'DOWN' geïnterpreteerd kunnen worden als omgekeerd.",
+                            "Hint 7: Probeer alstublieft om het vel papier te draaien en het ondersteboven te houden.",
+                            "Hint 8: Omgekeerd gelezen, leest de code '01912'. Dat moet de code voor deze fase zijn!"
+                        ],
+                        code: "01912",
+                        nextPage: "mission1_fase1.html"
+                    }
+                ]
+            },
+            {
+                title: "Mission 1: Centraal Station",
+                phases: [
+                    {
+                        hints: [
+                            "Hint 1: Deze puzzel is vreemd - er zijn helemaal geen nummers! Of toch?",
+                            "Hint 2: Onze experts suggereren dat deze puzzel niet (!) over tellen gaat.",
+                            "Hint 3: We hebben de raadsel aan een architect getoond - hij wees erop dat, interessant genoeg, de meeste muren verbonden zijn met de buitenmuren - slechts een paar muren lijken vrijstaand.",
+                            "Hint 4: Mogelijk gaat de oplossing over de vorm van de vrijstaande muren?",
+                            "Hint 5: We zijn misschien op de goede weg. Op weg naar de uitgang heeft de eerste vrijstaande muur de vorm van een '5'.",
+                            "Hint 6: Op weg naar de uitgang lijkt de volgende vrijstaande muur de vorm van een '2' te hebben.",
+                            "Hint 7: Het derde cijfer moet een '3' zijn - dat is de vorm van de volgende vrijstaande muur op weg naar de uitgang!",
+                            "Hint 8: We hebben de oplossing! Voorbij de ingang naar de uitgang zijn de vrijstaande muren gevormd als '52347' - dat moet het zijn!"
+                        ],
+                        code: "52347",
+                        nextPage: "mission1_fase2.html"
+                    },
+                    {
+                        hints: [
+                            "Hint 1: Deze puzzel ziet er anders uit dan de anderen. Snijd het eerst uit.",
+                            "Hint 2: Onze experts suggereren dat deze puzzel misschien op een bepaalde manier gevouwen moet worden?",
+                            "Hint 3: Het lijkt erop dat het kleine '+' in het midden van de puzzel letterlijk een 'centrumpunt' hier is.",
+                            "Hint 4: Probeer de vier hoeken naar het kleine '+' te vouwen. Lijnen alles uit?",
+                            "Hint 5: Onze experts hebben het eerste deel van de puzzel opgelost, ABCD zijn: '2374'. Maar wat met E?",
+                            "Hint 6: Het lijkt erop dat E verborgen is op de achterkant van de gevouwen puzzel. Misschien moet het nog een keer worden gevouwen?",
+                            "Hint 7: Onze experts vouwden de vier hoeken opnieuw naar het midden: E is '0', dat maakt de oplossing voor deze fase '23740'."
+                        ],
+                        code: "23740",
+                        nextPage: "mission1_fase3.html"
+                    },
+                    {
+                        hints: [
+                            "Hint 1: Dit moet oplosbaar zijn door logica. Onze experts suggereren om eerst mogelijkheden met 'bekende' posities op te schrijven, zoals 0xxx5 en 5xxx0 (aangezien '0' en '5' een maximale afstand behouden).",
+                            "Hint 2: Aangezien '4' rechts van '5' staat, is '0xxx5' geen mogelijkheid.",
+                            "Hint 3: '3' moet tussen '4' en '5' staan (wat, zoals we hebben ontdekt, het meest linkse cijfer is) - dat betekent dat de code begint met '534'.",
+                            "Hint 4: Als we aannemen dat de code begint met '534', moeten de laatste twee cijfers optellen tot '8'.",
+                            "Hint 5: Ons reken team heeft bevestigd: '8' en '0' tellen op tot '8'.",
+                            "Hint 6: Aangezien '5' en '0' een maximale afstand behouden, moet de '8' tussen de '0' en de '4' komen.",
+                            "Hint 7: De oplossing voor deze fase is derhalve, volgens onze experts: '53480'."
+                        ],
+                        code: "53480",
+                        nextPage: "mission1_fase4.html"
+                    },
+                    {
+                        hints: [
+                            "Hint 1: Dit raadsel lijkt over schaken te gaan! We hebben met enkele schaakexperts gesproken: soms besteden meester spelers speciale aandacht aan patronen in de sporen van de beweging.",
+                            "Hint 2: Vergeet niet: torens bewegen alleen horizontaal en verticaal, lopers bewegen alleen diagonaal. De koningin kan beide.",
+                            "Hint 3: Onze experts suggereren om deze puzzel als een team op te lossen: één persoon leest de schaakzetten voor, terwijl een ander de beweging op het bord tekent.",
+                            "Hint 4: Onze teams hebben aan de oplossing gewerkt. Ze rapporteren dat het bewegingspatroon van de witte toren simpelweg een naar beneden lopende lijn is - dit kan wijzen op een '1'.",
+                            "Hint 5: De witte loper volgt, zoals onze experts aangeven, het patroon van een '3'.",
+                            "Hint 6: Een ander rapport van onze experts ter plaatse: hun bevindingen geven aan dat de beweging van de zwarte loper de vorm heeft van een '6'.",
+                            "Hint 7: De zwarte toren lijkt een '5' te markeren, wanneer deze wordt getraceerd.",
+                            "Hint 8: De witte koningin lijkt een '4' op het bord te schrijven. Dat maakt '13654' de oplossing voor deze fase!"
+                        ],
+                        code: "13654",
+                        nextPage: "mission1_fase5.html"
+                    },
+                    {
+                        hints: [
+                            "Hint 1: Deze puzzel lijkt over vouwen te gaan. Maar er staat 'tijdelijk' - we voeren enkele tests uit en houden je op de hoogte!",
+                            "Hint 2: Onze astronomen wijzen erop dat het precies vouwen van de sterren paargewijs op elkaar misschien van extreem belang is in deze puzzel.",
+                            "Hint 3: We geloven dat het de meest veelbelovende benadering is om het eerste paar sterren samen te vouwen, het papier weer open te vouwen, en door te gaan met het volgende paar.",
+                            "Hint 4: We hebben met een origami-specialist gesproken. Hij wees erop dat het mogelijk is om een 'ster'-achtige afbeelding te creëren met vijf vouwen - misschien zullen de vijf vouwen die in de tekst worden genoemd zo'n afbeelding creëren? Is dat de 'supernova'?",
+                            "Hint 5: We kunnen hierbij bevestigen: het papier vouwen zoals beschreven in de tekst zal een sterachtige afbeelding creëren door de vouwlijnen. De daadwerkelijke code voor deze fase lijkt gerelateerd te zijn aan het aantal sterren binnen deze afbeelding.",
+                            "Hint 6: Ons team ter plaatse heeft een mogelijke oplossing gevonden: er zijn (beginning in het noorden en verder met de klok mee) 3, 2, 2, 1 en 3 sterren in de 'armen' van de sterafbeelding. Dat moet de code voor deze fase zijn!"
+                        ],
+                        code: "32213",
+                        nextPage: "mission2_fase1.html"
+                    }
+                ]
+            },
+            {
+                title: "Mission 2: Terminal",
+                phases: [
+                    {
+                        hints: [
+                            "Hint 1: Een gedicht? Interessant. We hebben het talloze keren gelezen ...",
+                            "Hint 2: Onze experts vragen zich af wat de maniak hier wilde benadrukken.",
+                            "Hint 3: Het kan mogelijk zijn dat de 'notitie voor zichzelf' van de maniak iets hiermee te maken heeft.",
+                            "Hint 4: Misschien verbergen de woorden van dit gedicht de oplossing van de puzzel recht voor onze ogen?",
+                            "Hint 5: Sommige woorden lijken cijfers te bevatten! Maar waar is het vijfde cijfer?",
+                            "Hint 6: Probeer '41821' - dat wil zeggen, probeer de nummers die verborgen zijn binnen de woorden van het gedicht en in de beginletters van elke regel."
+                        ],
+                        code: "41821",
+                        nextPage: "mission2_fase2.html"
+                    },
+                    {
+                        hints: [
+    					"Hint 1: Deze puzzel lijkt te gaan over het vinden van de code in deze grote, chaotische afbeelding. Waarschijnlijk zullen sommige vormen optellen tot de code waar we naar op zoek zijn.",
+    					"Hint 2: Onze teams ter plaatse suggereren dat deze puzzel dezelfde structuur kan volgen als 'schilderen op nummers'.",
+    					"Hint 3: We hebben gesproken met een professional in 'schilderen op nummers'. Het lijkt nodig te zijn om die (en alleen die) vormen in te kleuren die gemarkeerd zijn met 'A', 'B', 'C', 'D' en 'E'.",
+    					"Hint 4: Onze experts hebben ontdekt dat, hoewel het gedeeltelijk bedekt is, het eerste cijfer een '8' lijkt te zijn.",
+    					"Hint 5: Verder hebben onze teams het volgende cijfer ontdekt - de vormen gelabeld met 'B' lijken een '4' te vormen.",
+    					"Hint 6: We hebben weer een nummer! De vormen gemarkeerd met 'C' lijken een '7' te vormen.",
+    					"Hint 7: Nog een nummer! Alle velden gemarkeerd met 'D', wanneer ingekleurd, lijken samen te komen tot de vorm van een '0'.",
+    					"Hint 8: Het laatste cijfer is een '7', dat hebben onze experts zojuist ontdekt! Dat betekent dat de code voor deze fase '84707' moet zijn."
+				],
+				code: "84707",
+                        nextPage: "mission2_fase3.html"
+                    },
+                    {
+                        hints: [
+    					"Hint 1: Deze puzzel is anders dan de andere. De stippen zijn duidelijk gemarkeerd als 'ABCDE', maar hoe worden ze cijfers?",
+    					"Hint 2: Elke 'stipwolk' heeft meer dan 9 stippen. Dit betekent dat het hier niet om het tellen gaat.",
+    					"Hint 3: Een van onze experts ter plaatse heeft net zijn bril afgezet. Hij had het gevoel dat dit hem hielp iets te zien, maar hij is niet zeker wat.",
+    					"Hint 4: We hebben zojuist gesproken met een expert in optische filosofie. Hij merkte op dat het erg nuttig kan zijn om deze soort puzzel van een afstand te bekijken.",
+    					"Hint 5: We hebben het zelf geprobeerd: de puzzel vanuit de andere kant van de kamer bekijken helpt - de stippen lijken samen te komen.",
+    					"Hint 6: We hebben een idee: de puzzel moet misschien ook worden gedraaid.",
+    					"Hint 7: Onze teams hebben een beetje geëxperimenteerd: de puzzel van de zijkant en van een afstand bekijken maakt de cijfers zichtbaar: '26359' is de oplossing voor deze fase!"
+				],
+				code: "26359",
+                        nextPage: "mission2_fase4.html"
+                    },
+                    {
+                        hints: [
+    					"Hint 1: Onze experts zijn ervan overtuigd dat de tekst onder deze vreemde symbolen een valse hint is van de maniak.",
+    					"Hint 2: Ons team heeft net opgemerkt dat deze vormen - gedeeltelijk - bekend lijken.",
+    					"Hint 3: We geloven dat deze vormen (er zijn in totaal vijf vormen) op de een of andere manier gewijzigde cijfers zijn.",
+    					"Hint 4: We hebben gesproken met een symmetrician. Hij merkte op dat alle vormen symmetrisch zijn.",
+    					"Hint 5: Een van onze experts ter plaatse heeft net opgemerkt dat de vierde vorm eruitziet als een '4', alleen gespiegeld!",
+    					"Hint 6: Een andere inzicht: de eerste vorm zou een '2' kunnen zijn, als men alleen naar de rechterhelft kijkt.",
+    					"Hint 7: We hebben dezelfde strategie toegepast op de andere vormen - door altijd alleen naar de helft van de vorm te kijken, kunnen deze symbolen worden gelezen als '21743'. Dat zou de oplossing voor deze fase kunnen zijn!"
+				],
+				code: "21743",
+                        nextPage: "mission2_fase5.html"
+                    },
+                    {
+				hints: [
+    					"Hint 1: Onze experts zijn er zeker van dat deze raadsel verband houdt met LCD-schermen. Ze stellen voor om de zwarte 'display' uit te knippen en ook de interne segmenten te verwijderen.",
+    					"Hint 2: Het lijkt erop dat de zwarte 'display' even hoog is als het patroongebied van de puzzel breed is. Misschien is het een goed idee om het patroongebied te draaien?",
+    					"Hint 3: Het plaatsen van de 'display' op het patroon is een veelbelovende aanpak - onze experts evalueren verschillende opties voor hoe verder te gaan.",
+    					"Hint 4: Een ander idee van ons team ter plaatse: Probeer de display van links naar rechts over het patroon te verschuiven, waardoor het in vijf gelijke delen wordt verdeeld.",
+    					"Hint 5: Als dat niet werkt, probeer dan het patroon ondersteboven te draaien.",
+    					"Hint 6: We hebben net gesproken met de eigenaar van een LCD-horloge. Hij merkte op dat een '0' soms kleiner wordt weergegeven op deze displays, om de leesbaarheid te vergroten.",
+    					"Hint 7: Ons team heeft net een deel van de oplossing ontdekt! Door de display van links naar rechts over het patroon te verplaatsen, konden ze '362' lezen - dat moet het begin van de code zijn!",
+    					"Hint 8: De code eindigt met '50', ontdekte ons team net. De '0' werd kleiner weergegeven. Dat maakt '36250' de oplossing voor deze fase!"
+				],
+				code: "36250",
+                        nextPage: "mission3_fase1.html"
+                    }
+                ]
+            },
+		{
+   			title: "Mission 3: Elevator",
+    			phases: [
+        			{
+            			hints: [
+                				"Hint 1: In een sudoku moeten de cijfers van 1 tot 9 precies één keer voorkomen in elke rij, elke kolom en elk klein (3x3) vierkant.",
+                				"Hint 2: In de 8e rij van de 9e kolom (naast de '4', onder de '9') moet een '3' komen: een '3' ontbreekt in dit kleine vierkant, het kan niet in de onderste rij, en ook niet in de kolom van de '6'.",
+                				"Hint 3: In hetzelfde 3x3 vierkant (rechtsonder) moet de '8' in het onderste linker veld, onder de '6' en naast de '1' komen. Het kan niet in de middelste of bovenste rijen, en niet in de rechter kolom.",
+                				"Hint 4: Voor de 7e rij betekent dit dat het tweede veld de '3' bevat, het middelste veld de '5' en dat C '4' is.",
+                				"Hint 5: Ik geef je de nummers voor de derde rij: 287 491 536.",
+                				"Hint 6: A is '8', B is '7', C is '4', D is '5' en E is '9'. Haast je met de rest!"
+            			],
+            			code: "87459",
+            			nextPage: "mission3_fase2.html"
+        			},
+        			{
+            			hints: [
+                				"Hint 1: Pak je schaar en tape, het is tijd om een kubus te bouwen!",
+                				"Hint 2: Zodra je je kubistische meesterwerk hebt voltooid, volg dan mijn instructies in het document.",
+                				"Hint 3: Vergeet niet: er is een verschil tussen draaien en kantelen!",
+                				"Hint 4: Controleer altijd, altijd, altijd: noord, oost, west en zuid. Ze veranderen sneller dan je zou verwachten!",
+                				"Hint 5: Volg mijn instructies, je zou moeten eindigen met cijfer A als '2'.",
+                				"Hint 6: Als je geen '0' voor B hebt, kan ik je ook niet helpen.",
+                				"Hint 7: Goed, de oplossing is '20832' - ik ben erg, erg teleurgesteld!"
+            			],
+            			code: "20832",
+            			nextPage: "mission3_fase3.html"
+        			},
+        			{
+            			hints: [
+                				"Hint 1: Heb ik je verteld dat ik eigenlijk een grote fan ben van accordeonmuziek?",
+                				"Hint 2: Het wordt erg heet hier! Zou je, alsjeblieft, een ventilator voor me kunnen maken?",
+                				"Hint 3: Gebruik bij het vouwen de zwarte streepjes aan de zijkanten om de vouwen in ritme te houden.",
+                				"Hint 4: Alle zwarte streepjes aan elke kant moeten 'punten' in dezelfde richting.",
+                				"Hint 5: ... en alle witte in de andere richting!",
+                				"Hint 6: Heilige flip afbeelding!",
+                				"Hint 7: Afhankelijk van waar je naar kijkt, zou je twee delen van een vergelijking moeten zien.",
+                				"Hint 8: De vergelijking, 3883+8388, geeft je '12271'. Beter geluk de volgende keer!"
+            			],
+            			code: "12271",
+            			nextPage: "mission3_fase4.html"
+        			},
+        			{
+            			hints: [
+                				"Hint 1: Eindelijk kan de cryptograaf in jou aan het werk! Ga je gang, knip die linialen uit!",
+                				"Hint 2: Als P=M, dan wordt V S.",
+                				"Hint 3: Als X=O, dan wordt J A.",
+                				"Hint 4: Ik hoop dat je dit niet probeert op te lossen zonder een teamgenoot. Dit gaat helemaal over teamwork, vergeet dat niet!",
+                				"Hint 5: Door de code te vertalen met behulp van de linialen, zou je moeten eindigen met een zeer groot getal.",
+                				"Hint 6: Voor het geval je dacht dat het sneller zou zijn om gewoon te wachten tot ik je de ultieme hint geef: ik heb genoeg tijd. Jij niet.",
+                				"Hint 7: '12345'. Zo simpel! Ik wou dat dat de oplossing voor deze puzzel was. Helaas is het dat niet. Goed voor jou: je kunt dat van je lijstje afstrepen!",
+                				"Hint 8: Waarom probeer je deze niet? '72883' - als je denkt dat ik teleurgesteld ben, maak je geen zorgen. Tenminste, je hebt bewezen dat je erg geduldig kunt zijn!"
+            			],
+            			code: "72883",
+            			nextPage: "mission3_fase5.html"
+        			},
+        			{
+            			hints: [
+                				"Hint 1: Ah, de goede oude draaiende schijf! Terwijl je deze uitknipt en in elkaar zet, zal ik mijn piratenstem oefenen!",
+                				"Hint 2: Als je geen van die fold-back clips (wie heeft die?!?) hebt om in het midden van je schijven te stoppen, maak je geen zorgen. Improviseer!",
+                				"Hint 3: Achter je! Een driehoofdige aap!",
+                				"Hint 4: Volg de instructies, het is echt niet zo moeilijk. De eerste instructie zou je een '2' moeten geven, bijvoorbeeld.",
+                				"Hint 5: De tweede leidt naar een '3'. Trouwens: wees voorzichtig met de vijfde, die heeft een twist!",
+                				"Hint 6: De derde leidt je naar nog een '3'.",
+                				"Hint 7: De vierde zal resulteren in een '2'.",
+                				"Hint 8: De vijfde zal leiden naar een '4'. Ik wist dat je dit zelf niet zou hebben uitgezocht."
+            			],
+            			code: "23324",
+            			nextPage: "einde.html"
+        			}
+    			]
+		}
+        ];
+
+	function startTimer() {
+    		document.getElementById("startButton").style.display = "none";
+    		document.getElementById("hint").style.display = "block";
+    		document.getElementById("codeInput").style.display = "block";
+		
+    		hintIndex = 0; // Reset hint index voor nieuwe sessie
+    		document.getElementById("hint").innerText = ""; // Maak hinttekst leeg
+    		document.getElementById("missionTitle").innerText = `${missions[currentMission].title} - Fase ${currentPhase + 1}`; // Zet de titel
+		
+    		const interval = setInterval(() => {
+        		if (hintIndex < missions[currentMission].phases[currentPhase].hints.length) {
+            		document.getElementById("hint").innerText += missions[currentMission].phases[currentPhase].hints[hintIndex] + "\n";
+            		hintIndex++;
+        		} else {
+            		clearInterval(interval);
+        		}
+    		}, 60000); // 60 seconden
+	}
+
+        function checkCode() {
+            const code = document.getElementById("code").value;
+            if (code === missions[currentMission].phases[currentPhase].code) {
+    			alert("Correcte code! Je kunt nu doorgaan naar de volgende fase.");
+    			document.getElementById("nextButton").style.display = "block";
+    			document.getElementById("code").value = ""; // Leeg het invoerveld
+		} else {
+    			alert("Onjuiste code, probeer het opnieuw.");
+		}
+
+        }
+      
+    	function goToNextPhase() {
+    		document.getElementById("nextButton").style.display = "none"; // Verberg de knop onmiddellijk
+    		if (currentPhase < missions[currentMission].phases.length - 1) {
+        		currentPhase++;
+        		// document.getElementById("hint").innerText = ""; // Reset hints is verwijderd
+        		startTimer(); // Herstart de timer en hints voor de volgende fase
+        		document.getElementById("missionTitle").innerText = `${missions[currentMission].title} - Fase ${currentPhase + 1}`; // Update titel
+    		} else {
+        		// Alle fasen van de huidige missie zijn voltooid
+        		alert("Alle fasen zijn voltooid! Ga naar de volgende missie.");
+        		currentMission++; // Verhoog de missie
+        		currentPhase = 0; // Reset naar de eerste fase van de volgende missie
+        		if (currentMission < missions.length) {
+            		startTimer(); // Herstart de timer en hints voor de nieuwe fase
+            		document.getElementById("missionTitle").innerText = `${missions[currentMission].title} - Fase ${currentPhase + 1}`; // Update titel
+        		   } else {
+            alert("Gefeliciteerd, alle missies zijn voltooid! Het is tijd voor je kado... Maak met de cijfers xxx de koffer open!");
+            // Je kunt hier eventueel een redirect of een eindpagina toevoegen
+        }
+    }
+}
+
+	</script>
+
+</body>
+</html>
+
